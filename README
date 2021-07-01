@@ -1,0 +1,266 @@
+uemacs
+=======
+
+A Rust port of MicroEMACS (https://github.com/torvalds/uemacs).
+
+Run:    em [filename]
+Build:  cargo build --release 
+Test:   cargo test --release
+
+
+Notation
+========
+
+C-x     hold Control and press x
+M-x     press Esc then x  (or hold Meta/Alt and press x)
+SPC     space bar
+RET     return / enter
+DEL     backspace
+
+
+Cursor motion
+=============
+
+C-f     forward-char            move one character right
+C-b     backward-char           move one character left
+C-n     forward-line            next line
+C-p     backward-line           previous line
+C-a     beginning-of-line
+C-e     end-of-line
+M-f     forward-word            next word
+M-b     backward-word           previous word
+M-<     beginning-of-buffer
+M->     end-of-buffer
+M-g     goto-line               prompt for a line number
+C-v     next-page               page down
+M-v     previous-page           page up
+C-z     backward-page           page up (alt)
+M-n     next-paragraph
+M-p     previous-paragraph
+M-C-f   goto-matching-fence     jump to matching () [] {}
+
+
+Mark and region
+===============
+
+C-SPC   set-mark
+M-SPC   set-mark                (alt)
+M-.     set-mark                (alt)
+C-x C-x exchange-point-and-mark
+C-w     kill-region             cut region to kill buffer
+M-w     copy-region             copy region to kill buffer
+C-y     yank                    paste kill buffer
+C-x C-l lower-region
+C-x C-u upper-region
+M-l     lower-word
+M-u     upper-word
+M-c     cap-word
+M-d     delete-next-word
+M-h     delete-previous-word
+M-DEL   delete-previous-word    (alt)
+
+
+Insertion and deletion
+======================
+
+self    insert that character at dot
+C-d     delete-next-character
+C-h     delete-previous-character
+DEL     delete-previous-character
+C-c     insert-space            insert SPC at dot, dot stays put
+C-i     insert-tab              tab
+TAB     insert-tab              (alt)
+RET     insert-newline
+C-m     insert-newline          (alt)
+C-j     newline-and-indent      newline + match previous indent
+C-o     open-line               like RET but dot stays on this line
+C-q     quote-char              insert the next literal byte
+C-x q   quote-char              (alt)
+C-k     kill-text               kill to end of line (or whole line)
+C-t     transpose-characters
+C-_     undo
+
+
+Search and replace
+==================
+
+C-s     incremental-search             type pattern to find as you go
+C-r     reverse-incremental-search
+M-s     search-forward                 use the last pattern, no prompt
+M-r     replace-string                 plain replace
+M-%     query-replace                  prompt at every match
+M-C-r   query-replace                  (alt)
+M-m     toggle-magic                   regex on/off for searches
+
+Inside an isearch:
+  any character    extends the search pattern
+  C-s              find next forward match
+  C-r              find next backward match
+  DEL              walk back one keystroke of pattern
+  C-g / Esc        cancel; dot returns to where you started
+  RET              accept; dot stays at the match
+
+
+Files
+=====
+
+C-x C-f find-file               read a file into the current buffer
+C-x C-r read-file               replace current buffer with file
+C-x C-i insert-file             insert file at dot
+C-x C-v view-file               read file in read-only mode
+C-x C-s save-file               write to the buffer's filename
+C-x C-d save-file               (alt)
+C-x C-w write-file              write to a new filename, switch to it
+C-x N   change-file-name        set the filename without writing
+M-e     set-encryption-key      set the buffer's MDCRYPT key
+
+
+Buffers
+=======
+
+C-x b   switch-buffer
+C-x x   next-buffer
+C-x k   kill-buffer
+C-x C-b list-buffers            show buffer table in *List*
+C-x =   buffer-position         line N/M, column, byte position, %
+M-C-n   name-buffer             rename current buffer
+M-~     unmark-buffer           clear modified flag
+
+
+Windows
+=======
+
+C-x 2   split-window
+C-x 1   one-window              keep only the current window
+C-x 0   delete-window
+C-x o   other-window            next window in cycle
+C-x p   previous-window
+C-x ^   grow-window
+C-x z   grow-window             (alt)
+C-x C-z shrink-window
+C-x C-n move-window-down
+C-x C-p move-window-up
+M-C-v   scroll-next-down
+M-C-z   scroll-next-up
+C-x w   resize-window
+M-!     redraw-display          recenter dot vertically
+M-C-l   redraw-display          (alt)
+C-l     refresh-screen          force complete repaint
+
+
+Lines and paragraphs
+====================
+
+C-x C-a detab-line              tabs -> spaces
+C-x C-e entab-line              runs of spaces -> tabs
+C-x C-t trim-line               drop trailing whitespace
+C-x C-o delete-blank-lines
+M-q     fill-paragraph          reflow to fill column
+M-j     justify-paragraph       reflow, keep left margin
+M-C-w   kill-paragraph
+M-C-c   count-words             count in region or buffer
+
+
+Modes
+=====
+
+C-x m   add-mode                add a mode flag to current buffer
+C-x C-m delete-mode
+M-m     add-global-mode         same, but for every new buffer
+M-C-m   delete-global-mode
+
+Mode names accepted by add-mode and delete-mode (case-insensitive):
+  WRAP    auto wrap when past fill column
+  CMODE   auto-indent for C-like syntax
+  SPELL   spell-error parsing flag
+  EXACT   case-sensitive search
+  VIEW    read-only buffer
+  OVER    overwrite mode
+  MAGIC   regex search
+  CRYPT   encrypt on save
+  ASAVE   auto-save
+
+
+Macros
+======
+
+C-x (   start-kbd-macro
+C-x )   end-kbd-macro
+C-x e   execute-macro           replay the last kbd macro
+
+A "stored macro" lives in a *N* buffer:
+  M-x store-macro          name the macro slot 1..9
+  M-x execute-macro-1..9   run one of the slots
+M-x store-procedure        store keystrokes in *name* buffer
+M-x execute-procedure name run *name* as a script
+M-x run                    alias for execute-procedure
+
+
+Help and discovery
+==================
+
+M-?     help                    show this list inside uemacs
+M-x apropos                     list commands whose name matches
+M-a     apropos                 (alt)
+C-x ?   describe-key            press a key, see what it runs
+M-x describe-bindings           list every binding
+M-x bind-to-key                 bind a key to a command
+M-k     bind-to-key             (alt)
+M-x unbind-key
+M-C-k   unbind-key              (alt)
+
+
+Prefix arguments
+================
+
+C-u     universal-argument      default 4; press again to multiply by 4
+                                or follow with digits, e.g. C-u 1 0 C-f
+                                = forward 10 chars
+M-<n>   numeric argument        same effect, e.g. M-5 C-f
+
+
+Quitting
+========
+
+C-g     keyboard-quit / abort-command
+C-x C-c exit-emacs              prompt if there are unsaved buffers
+M-z     quick-exit              save all dirty buffers and exit
+C-z     not quit; this is backward-page (uemacs convention)
+
+
+Shell and subprocess
+====================
+
+C-x C   i-shell                 spawn an interactive subshell
+C-x D   suspend-emacs           SIGTSTP back to the shell
+C-x !   shell-command           one-shot shell command
+C-x $   execute-program         run a program
+C-x #   filter-buffer           pipe buffer through external command
+C-x @   pipe-command            replace buffer with command output
+
+
+Editor variables ($name in macro language)
+==========================================
+
+$tab       tab width                  $fillcol   fill column
+$scroll    page scroll amount         $gmode     global mode bits
+$search    last search pattern        $replace   last replacement
+$match     last matched text          $kill      kill buffer contents
+$curline   current line number        $curcol    current column
+$curchar   character under dot        $bufname   current buffer name
+$fname     buffer's filename          $version   editor version
+$progname  "uemacs"                  $lastkey   last keystroke
+$asave / $acount  auto-save params
+$cmode / $lwidth / $wline / $cwline / $line  buffer geometry
+$status / $discmd / $disinp / $rval / $target / $ram
+$flicker / $sres / $debug / $palette / $seed / $tpause / $pending
+$gflags / $overlap / $pagelen / $curwidth
+
+Function-like builtins available as &name(args):
+  &add &sub &mul &div &mod &neg &abs
+  &equ &les &gre &sle &sgr &seq
+  &and &or &not &band &bor &bxo &ban &bno
+  &len &cat &lef &rig &mid &sin &upp &low
+  &asc &chr &xla &ind &env &fin &gtk &exi
+  &tru &rnd &bin
+

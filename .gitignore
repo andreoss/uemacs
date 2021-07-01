@@ -1,0 +1,5 @@
+/target/
+Cargo.lock
+cobertura.xml
+*.lock~
+/src/edit/tests.rs

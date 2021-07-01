@@ -1,0 +1,22 @@
+[package]
+name = "uemacs"
+version = "0.0.1"
+edition = "2021"
+description = "A port of the uEmacs/Pk"
+license = "GPL-3"
+repository = "https://github.com/andreoss/ruemacs"
+keywords = ["editor", "emacs", "uemacs", "tui", "text-editor"]
+categories = ["text-editors", "command-line-utilities"]
+
+[[bin]]
+name = "em"
+path = "src/main.rs"
+
+[dependencies]
+libc = "0.2"
+regex = "1"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
