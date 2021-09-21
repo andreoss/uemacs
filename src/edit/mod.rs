@@ -1,4 +1,4 @@
-pub use crate::bind::{Bindings, command_name};
+pub use crate::bind::{Bindings};
 pub use crate::buffer::{Buffer, Buffers};
 pub use crate::core::{
     BufferFlags, BufferId, CONTROL, CmdFlags, CommandId, Error, KeyCode, LineId, LineOffset, META,

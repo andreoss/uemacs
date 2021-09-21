@@ -1,7 +1,7 @@
 use super::{
     Bindings, BufferFlags, BufferId, Buffers, Command, Display, Editor, Error, InsertNewline, Key,
     LineId, LineOffset, Mode, Result, TerminalBackend, UndoAction, WindowFlags,
-    clear_help_buffer_lines, command_name, key_to_bytes, insert_lines_into_buffer,
+    clear_help_buffer_lines, key_to_bytes, insert_lines_into_buffer,
     switch_window_to_buffer_first_line,
 };
 use std::borrow::Cow;
@@ -156,14 +156,14 @@ pub fn find_apropos_matches(
     let mut seen = std::collections::HashSet::new();
     let mut matches: Vec<(Cow<'static, str>, &'static str)> = Vec::new();
     for (_, cmd) in bindings.entries() {
-        let name = command_name(cmd);
+        let name = cmd.name();
         if (name.contains(pattern)
-            || crate::bind::command_description(cmd)
+            || cmd.description()
                 .to_ascii_lowercase()
                 .contains(&pattern.to_ascii_lowercase()))
             && seen.insert(name.clone())
         {
-            matches.push((name, crate::bind::command_description(cmd)));
+            matches.push((name, cmd.description()));
         }
     }
     matches.sort_by_key(|(n, _)| n.clone());

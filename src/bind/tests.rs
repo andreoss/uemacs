@@ -9,7 +9,7 @@ fn test_bindings_iter_contains_known_keys() {
 }
 
 #[test]
-fn test_lookup_suspend_emacs() {
+fn test_ctrl_z_is_backward_page() {
     let bindings = Bindings::new();
     assert_eq!(
         bindings.lookup(ctrl(b'Z')),

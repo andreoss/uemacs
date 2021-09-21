@@ -1,6 +1,6 @@
 use super::{
-    Bindings, Display, Editor, MacroKey, Result, TerminalBackend, next_rng, parse_key_name,
-    parse_leading_int, stol,
+    Bindings, CommandId, Display, Editor, MacroKey, Result, TerminalBackend, next_rng,
+    parse_key_name, parse_leading_int, stol,
 };
 use std::borrow::Cow;
 
@@ -91,7 +91,7 @@ impl Editor {
                 |kc| {
                     Bindings::new()
                         .lookup(kc)
-                        .map_or(Cow::Borrowed("ERROR"), crate::bind::command_name)
+                        .map_or(Cow::Borrowed("ERROR"), CommandId::name)
                         .to_string()
                 },
             ),
@@ -139,7 +139,7 @@ impl Editor {
             } else {
                 (parts[0], false, 1)
             };
-        if let Some(cmd) = Bindings::lookup_name(cmd_name) {
+        if let Some(cmd) = CommandId::from_name(cmd_name) {
             self.dispatch(cmd, term, display, bindings, prefix_f, prefix_n)
         } else {
             display.write_echo(term, &format!("(No such function: {cmd_name})"))?;

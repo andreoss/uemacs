@@ -1,6 +1,6 @@
 use super::{
     Bindings, BufferFlags, BufferId, Buffers, Display, Editor, Error, LineId, LineOffset, Result,
-    TerminalBackend, WindowFlags, command_name, key_code_display, region_bounds,
+    TerminalBackend, WindowFlags, key_code_display, region_bounds,
 };
 use std::borrow::Cow;
 
@@ -11,7 +11,7 @@ impl Editor {
         let mut entries: Vec<(String, Cow<'static, str>)> = bindings
             .entries()
             .into_iter()
-            .map(|(kc, cmd)| (key_code_display(kc), command_name(cmd)))
+            .map(|(kc, cmd)| (key_code_display(kc), cmd.name()))
             .collect();
         entries.sort_by(|a, b| a.0.cmp(&b.0));
         let mut lines = vec![

@@ -10,7 +10,7 @@ use super::{
     OneWindow, OpenLine, OtherWindow, PreviousWindow, RefreshScreen, ResizeWindow, Result,
     ScrollNextDown, ScrollNextUp, SetFillColumn, SetMark, ShrinkWindow, SplitWindowDown,
     StringInsertMode, SuspendEmacs, SwapMark, TerminalBackend, ToggleMagic, TransposeChars,
-    TrimLine, Undo, UpperRegion, UpperWord, WindowFlags, WrapWord, Yank, command_name, creates_text,
+    TrimLine, Undo, UpperRegion, UpperWord, WindowFlags, WrapWord, Yank, creates_text,
     ctlx_command, key_name, mutates_buffer, read_command_name, read_status_message,
     splice_string,
 };
@@ -208,7 +208,7 @@ impl Editor {
                 if name.is_empty() {
                     return Ok(());
                 }
-                if let Some(cmd) = Bindings::lookup_name(&name) {
+                if let Some(cmd) = CommandId::from_name(&name) {
                     self.dispatch(cmd, term, display, bindings, false, 1)
                 } else {
                     term.beep();
@@ -499,8 +499,8 @@ impl Editor {
                         format!(
                             "{} is bound to {} — {}",
                             key_name,
-                            command_name(cmd),
-                            crate::bind::command_description(cmd)
+                            cmd.name(),
+                            cmd.description()
                         )
                     },
                 );
@@ -637,7 +637,7 @@ impl Editor {
             }
             CommandId::BindToKey => {
                 let name = self.minibuffer_readline(term, display, "Bind to key: ")?;
-                let Some(cmd) = Bindings::lookup_name(&name) else {
+                let Some(cmd) = CommandId::from_name(&name) else {
                     term.beep();
                     return Ok(());
                 };
@@ -648,7 +648,7 @@ impl Editor {
                 let kc = KeyCode::from(key.clone());
                 let kn = key_name(&key);
                 bindings.bind(kc, cmd);
-                display.write_echo(term, &format!("[{} bound to {}]", kn, command_name(cmd)))?;
+                display.write_echo(term, &format!("[{} bound to {}]", kn, cmd.name()))?;
                 Ok(())
             }
             CommandId::MoveWindowDown => MoveWindowDown.execute(self, f, n),

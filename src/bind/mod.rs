@@ -37,7 +37,7 @@ impl Bindings {
         let mut names: Vec<Cow<'static, str>> = self
             .entries()
             .into_iter()
-            .map(|(_, cmd)| command_name(cmd))
+            .map(|(_, cmd)| cmd.name())
             .filter(|n| *n != "unknown" && n.starts_with(prefix))
             .collect();
         names.sort_unstable();
@@ -46,12 +46,7 @@ impl Bindings {
     }
 }
 
-mod descriptions;
-mod lookup_name;
-mod names;
 mod table;
-pub use descriptions::*;
-pub use names::*;
 
 #[cfg(test)]
 mod tests;
