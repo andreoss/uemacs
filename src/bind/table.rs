@@ -1,133 +1,156 @@
 use super::{Bindings, CONTROL, CommandId, HashMap, KeyCode, META, RefCell, ctrl, meta};
 
-const fn raw(b: u8) -> KeyCode {
-    KeyCode(b as u32)
-}
-
 const fn mctrl(b: u8) -> KeyCode {
     KeyCode(META | CONTROL | (b as u32 & 0x1f))
 }
 
-const ASCII_KEYS: &[(KeyCode, CommandId)] = &[
-    (raw(b'\r'), CommandId::InsertNewline),
-    (raw(b'\t'), CommandId::InsertTab),
-    (raw(0x7f), CommandId::BackwardDelete),
-];
+const fn ctrl_char(c: char) -> KeyCode {
+    KeyCode(CONTROL | (c as u32 & 0x1f))
+}
 
-const CONTROL_KEYS: &[(KeyCode, CommandId)] = &[
-    (ctrl(b'@'), CommandId::SetMark),
-    (ctrl(b'A'), CommandId::GotoBol),
-    (ctrl(b'B'), CommandId::BackwardChar),
-    (ctrl(b'C'), CommandId::InsertSpace),
-    (ctrl(b'D'), CommandId::ForwardDelete),
-    (ctrl(b'E'), CommandId::GotoEol),
-    (ctrl(b'F'), CommandId::ForwardChar),
-    (ctrl(b'G'), CommandId::KeyboardQuit),
-    (ctrl(b'H'), CommandId::BackwardDelete),
-    (ctrl(b'I'), CommandId::InsertTab),
-    (ctrl(b'J'), CommandId::NewlineAndIndent),
-    (ctrl(b'K'), CommandId::KillText),
-    (ctrl(b'L'), CommandId::RefreshScreen),
-    (ctrl(b'M'), CommandId::InsertNewline),
-    (ctrl(b'N'), CommandId::ForwardLine),
-    (ctrl(b'O'), CommandId::OpenLine),
-    (ctrl(b'P'), CommandId::BackwardLine),
-    (ctrl(b'Q'), CommandId::QuoteChar),
-    (ctrl(b'R'), CommandId::IsearchBackward),
-    (ctrl(b'S'), CommandId::IsearchForward),
-    (ctrl(b'T'), CommandId::TransposeChars),
-    (ctrl(b'V'), CommandId::ForwardPage),
-    (ctrl(b'W'), CommandId::KillRegion),
-    (ctrl(b'X'), CommandId::CtrlXPrefix),
-    (ctrl(b'Y'), CommandId::Yank),
-    (ctrl(b'Z'), CommandId::BackwardPage),
-    (ctrl(b'['), CommandId::MetaPrefix),
-    (ctrl(b']'), CommandId::MetaPrefix),
-    (ctrl(b'\\'), CommandId::KeyboardQuit),
-    (ctrl(b'_'), CommandId::Undo),
-];
+const fn meta_char(c: char) -> KeyCode {
+    KeyCode(META | c as u32)
+}
 
-const CURSOR_KEYS: &[(KeyCode, CommandId)] = &[
-    (KeyCode(0x101), CommandId::BackwardLine),
-    (KeyCode(0x102), CommandId::ForwardLine),
-    (KeyCode(0x103), CommandId::BackwardChar),
-    (KeyCode(0x104), CommandId::ForwardChar),
-    (KeyCode(0x105), CommandId::BackwardPage),
-    (KeyCode(0x106), CommandId::ForwardPage),
-    (KeyCode(0x107), CommandId::GotoBol),
-    (KeyCode(0x108), CommandId::GotoEol),
-    (KeyCode(0x109), CommandId::ForwardDelete),
-];
+const fn first_byte(s: &str) -> u8 {
+    s.as_bytes()[0]
+}
 
-const META_KEYS: &[(KeyCode, CommandId)] = &[
-    (meta(b'%'), CommandId::QueryReplace),
-    (meta(b'!'), CommandId::RedrawDisplay),
-    (meta(b' '), CommandId::SetMark),
-    (meta(b'.'), CommandId::SetMark),
-    (meta(b'<'), CommandId::GotoBob),
-    (meta(b'>'), CommandId::GotoEob),
-    (meta(b'?'), CommandId::Help),
-    (meta(b'~'), CommandId::UnmarkBuffer),
-    (meta(b'A'), CommandId::Apropos),
-    (meta(b'B'), CommandId::BackwardWord),
-    (meta(b'C'), CommandId::CapWord),
-    (meta(b'D'), CommandId::DeleteForwardWord),
+macro_rules! key {
+    (C - M - $k:ident) => { mctrl(first_byte(stringify!($k))) };
+    (C - $k:ident) => { ctrl(first_byte(stringify!($k))) };
+    (C - $k:literal) => { ctrl_char($k) };
+    (M - Backspace) => { KeyCode(META | 0x7f) };
+    (M - $k:ident) => { meta(first_byte(stringify!($k))) };
+    (M - $k:literal) => { meta_char($k) };
+    (Enter) => { KeyCode(0x0d) };
+    (Tab) => { KeyCode(0x09) };
+    (Backspace) => { KeyCode(0x7f) };
+    (Up) => { KeyCode(0x101) };
+    (Down) => { KeyCode(0x102) };
+    (Left) => { KeyCode(0x103) };
+    (Right) => { KeyCode(0x104) };
+    (PageUp) => { KeyCode(0x105) };
+    (PageDown) => { KeyCode(0x106) };
+    (Home) => { KeyCode(0x107) };
+    (End) => { KeyCode(0x108) };
+    (Delete) => { KeyCode(0x109) };
+}
 
-    (meta(b'F'), CommandId::ForwardWord),
-    (meta(b'G'), CommandId::GotoLine),
-    (meta(b'J'), CommandId::JustifyPara),
-    (meta(b'K'), CommandId::BindToKey),
-    (meta(b'L'), CommandId::LowerWord),
-    (meta(b'M'), CommandId::AddGlobalMode),
-    (meta(b'N'), CommandId::GotoEop),
-    (meta(b'P'), CommandId::GotoBop),
-    (meta(b'Q'), CommandId::FillPara),
-    (meta(b'R'), CommandId::ReplaceString),
-    (meta(b'S'), CommandId::ForwardSearch),
-    (meta(b'U'), CommandId::UpperWord),
-    (meta(b'V'), CommandId::BackwardPage),
-    (meta(b'W'), CommandId::CopyRegion),
-    (meta(b'X'), CommandId::ExecuteCommand),
-    (meta(b'Z'), CommandId::QuickExit),
-    (KeyCode(META | 0x7f), CommandId::DeleteBackwardWord),
-];
-
-const META_CONTROL_KEYS: &[(KeyCode, CommandId)] = &[
-    (mctrl(b'C'), CommandId::CountWords),
-    (mctrl(b'D'), CommandId::ChangeScreenSize),
-    (mctrl(b'E'), CommandId::ExecuteProcedure),
-    (mctrl(b'F'), CommandId::GotoMatchingFence),
-    (mctrl(b'H'), CommandId::DeleteBackwardWord),
-    (mctrl(b'K'), CommandId::UnbindKey),
-    (mctrl(b'L'), CommandId::RedrawDisplay),
-    (mctrl(b'M'), CommandId::DeleteGlobalMode),
-    (mctrl(b'N'), CommandId::NameBuffer),
-    (mctrl(b'R'), CommandId::QueryReplace),
-    (mctrl(b'S'), CommandId::ChangeScreenSize),
-    (mctrl(b'T'), CommandId::ChangeScreenWidth),
-    (mctrl(b'V'), CommandId::ScrollNextDown),
-    (mctrl(b'W'), CommandId::KillParagraph),
-    (mctrl(b'Z'), CommandId::ScrollNextUp),
-];
-
-const BINDING_TABLES: &[&[(KeyCode, CommandId)]] = &[
-    ASCII_KEYS,
-    CONTROL_KEYS,
-    CURSOR_KEYS,
-    META_KEYS,
-    META_CONTROL_KEYS,
-];
-
-impl Bindings {
-    pub fn new() -> Self {
-        let mut map = HashMap::new();
-        for table in BINDING_TABLES {
-            for &(code, cmd) in *table {
-                map.insert(code, cmd);
+macro_rules! keybindings {
+    (@build [ $( ($code:expr, $cmd:ident) )* ]) => {
+        const BINDINGS: &[(KeyCode, CommandId)] = &[ $( ($code, CommandId::$cmd), )* ];
+        impl Bindings {
+            pub fn new() -> Self {
+                let mut map = HashMap::new();
+                for &(code, cmd) in BINDINGS {
+                    map.insert(code, cmd);
+                }
+                Self {
+                    map: RefCell::new(map),
+                }
             }
         }
-        Self {
-            map: RefCell::new(map),
-        }
-    }
+    };
+    (@build [$($acc:tt)*] $($rest:tt)*) => {
+        keybindings!(@keys [$($acc)*] [] $($rest)*);
+    };
+    (@keys [$($acc:tt)*] [ $( ($code:expr) )* ] => $cmd:ident ; $($rest:tt)*) => {
+        keybindings!(@build [ $($acc)* $( ($code, $cmd) )* ] $($rest)*);
+    };
+    (@keys [$($acc:tt)*] [$($k:tt)*] | $($rest:tt)*) => {
+        keybindings!(@keys [$($acc)*] [$($k)*] $($rest)*);
+    };
+    (@keys [$($acc:tt)*] [$($k:tt)*] C - M - $key:ident $($rest:tt)*) => {
+        keybindings!(@keys [$($acc)*] [$($k)* (key!(C - M - $key))] $($rest)*);
+    };
+    (@keys [$($acc:tt)*] [$($k:tt)*] C - $key:tt $($rest:tt)*) => {
+        keybindings!(@keys [$($acc)*] [$($k)* (key!(C - $key))] $($rest)*);
+    };
+    (@keys [$($acc:tt)*] [$($k:tt)*] M - $key:tt $($rest:tt)*) => {
+        keybindings!(@keys [$($acc)*] [$($k)* (key!(M - $key))] $($rest)*);
+    };
+    (@keys [$($acc:tt)*] [$($k:tt)*] $key:ident $($rest:tt)*) => {
+        keybindings!(@keys [$($acc)*] [$($k)* (key!($key))] $($rest)*);
+    };
+    ( $($body:tt)* ) => {
+        keybindings!(@build [] $($body)*);
+    };
+}
+
+keybindings! {
+    Enter | C-M     => InsertNewline;
+    Tab | C-I       => InsertTab;
+    Backspace | C-H => BackwardDelete;
+    C-D | Delete    => ForwardDelete;
+    C-'@'           => SetMark;
+    C-A | Home      => GotoBol;
+    C-B | Left      => BackwardChar;
+    C-C             => InsertSpace;
+    C-E | End       => GotoEol;
+    C-F | Right     => ForwardChar;
+    C-G             => KeyboardQuit;
+    C-J             => NewlineAndIndent;
+    C-K             => KillText;
+    C-L             => RefreshScreen;
+    C-N | Down      => ForwardLine;
+    C-O             => OpenLine;
+    C-P | Up        => BackwardLine;
+    C-Q             => QuoteChar;
+    C-R             => IsearchBackward;
+    C-S             => IsearchForward;
+    C-T             => TransposeChars;
+    C-V | PageDown  => ForwardPage;
+    C-W             => KillRegion;
+    C-X             => CtrlXPrefix;
+    C-Y             => Yank;
+    C-Z | PageUp    => BackwardPage;
+    C-'['           => MetaPrefix;
+    C-']'           => MetaPrefix;
+    C-'\\'          => KeyboardQuit;
+    C-'_'           => Undo;
+    M-'%'           => QueryReplace;
+    M-'!'           => RedrawDisplay;
+    M-' '           => SetMark;
+    M-'.'           => SetMark;
+    M-'<'           => GotoBob;
+    M-'>'           => GotoEob;
+    M-'?'           => Help;
+    M-'~'           => UnmarkBuffer;
+    M-A             => Apropos;
+    M-B             => BackwardWord;
+    M-C             => CapWord;
+    M-D             => DeleteForwardWord;
+    M-F             => ForwardWord;
+    M-G             => GotoLine;
+    M-J             => JustifyPara;
+    M-K             => BindToKey;
+    M-L             => LowerWord;
+    M-M             => AddGlobalMode;
+    M-N             => GotoEop;
+    M-P             => GotoBop;
+    M-Q             => FillPara;
+    M-R             => ReplaceString;
+    M-S             => ForwardSearch;
+    M-U             => UpperWord;
+    M-V             => BackwardPage;
+    M-W             => CopyRegion;
+    M-X             => ExecuteCommand;
+    M-Z             => QuickExit;
+    M-Backspace     => DeleteBackwardWord;
+    C-M-C           => CountWords;
+    C-M-D           => ChangeScreenSize;
+    C-M-E           => ExecuteProcedure;
+    C-M-F           => GotoMatchingFence;
+    C-M-H           => DeleteBackwardWord;
+    C-M-K           => UnbindKey;
+    C-M-L           => RedrawDisplay;
+    C-M-M           => DeleteGlobalMode;
+    C-M-N           => NameBuffer;
+    C-M-R           => QueryReplace;
+    C-M-S           => ChangeScreenSize;
+    C-M-T           => ChangeScreenWidth;
+    C-M-V           => ScrollNextDown;
+    C-M-W           => KillParagraph;
+    C-M-Z           => ScrollNextUp;
 }

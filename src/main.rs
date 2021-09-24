@@ -1,3 +1,5 @@
+#![recursion_limit = "512"]
+
 mod bind;
 mod buffer;
 mod core;
