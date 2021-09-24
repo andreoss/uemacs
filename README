@@ -1,7 +1,7 @@
 uemacs
 =======
 
-A Rust port of MicroEMACS (https://github.com/torvalds/uemacs).
+A Rust port of uEmacs (https://github.com/torvalds/uemacs).
 
 Run:    em [filename]
 Build:  cargo build --release 
@@ -177,7 +177,6 @@ Mode names accepted by add-mode and delete-mode (case-insensitive):
   VIEW    read-only buffer
   OVER    overwrite mode
   MAGIC   regex search
-  CRYPT   encrypt on save
   ASAVE   auto-save
 
 
@@ -249,7 +248,7 @@ $match     last matched text          $kill      kill buffer contents
 $curline   current line number        $curcol    current column
 $curchar   character under dot        $bufname   current buffer name
 $fname     buffer's filename          $version   editor version
-$progname  "uemacs"                  $lastkey   last keystroke
+$progname  "em"                       $lastkey   last keystroke
 $asave / $acount  auto-save params
 $cmode / $lwidth / $wline / $cwline / $line  buffer geometry
 $status / $discmd / $disinp / $rval / $target / $ram

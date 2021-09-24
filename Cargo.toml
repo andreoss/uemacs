@@ -4,7 +4,7 @@ version = "0.0.1"
 edition = "2021"
 description = "A port of the uEmacs/Pk"
 license = "GPL-3"
-repository = "https://github.com/andreoss/ruemacs"
+repository = "https://github.com/andreoss/uemacs"
 keywords = ["editor", "emacs", "uemacs", "tui", "text-editor"]
 categories = ["text-editors", "command-line-utilities"]
 
